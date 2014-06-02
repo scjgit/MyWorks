@@ -7,15 +7,24 @@ angular.module('logInAngApp').factory('$exceptionHandler',function($log,printSta
 		//logger.debug("Some debug messages");
 		$log.info(exception.message);
 	    $log.info(exception.stack);
-	    printStackTrace.pushStackTrace(exception.stack);
+	    printStackTrace.pushStackTrace({data:exception.message});
 	};
 });
 
-angular.module('logInAngApp').factory('printStackTrace',function($log){
+angular.module('logInAngApp').factory('printStackTrace',function($log,$injector){
 	return {
-		pushStackTrace : function (data){
+		pushStackTrace : function (logData){
 			$log.info('In pushStackTrace');
-			$log.info(data);
+			$log.info(logData);
+			var http = $injector.get('$http');
+			
+			$.ajax({
+				type: "POST",
+				url: 'http://localhost:9002/log', 
+				contentType: "application/json",
+				data: logData
+			});
+			
 		}
 	};
 });

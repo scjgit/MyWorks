@@ -92,6 +92,14 @@ module.exports = function (grunt) {
         options: {
           base: '<%= yeoman.dist %>'
         }
+      },
+      myLogServer: {
+        options: {
+          port: 9002,
+          protocol: 'http',
+          hostname: 'localhost',
+          middleware :myFunction
+        }
       }
     },
 
@@ -353,6 +361,7 @@ module.exports = function (grunt) {
       'concurrent:server',
       'autoprefixer',
       'connect:livereload',
+      'connect:myLogServer',
       'watch'
     ]);
   });
@@ -393,3 +402,64 @@ module.exports = function (grunt) {
     'build'
   ]);
 };
+ var log4js = require('log4js');
+var qs = require('querystring');
+var myFunction = function(connect, options, middlewares) {
+            // inject a custom middleware into the array of default middlewares
+            
+            //var request = require('request');
+            log4js.configure('log4js_configuration.json', { cwd: '../' });
+            var logger = log4js.getLogger('appLogger');
+            var middlewares = [];
+            middlewares.push(function(req, res, next) {              
+              if (req.url !== '/log') return next();
+              logger.info('Host: '+req.headers.host);
+              logger.info('Origin: '+req.headers.origin);
+              logger.info(req.method);
+              if(req.method == 'OPTIONS'){
+              logger.info('In OPTIONS');
+              res.setHeader("Access-Control-Allow-Origin", req.headers.origin);
+              res.setHeader("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS");
+              res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept");
+              }else if(req.method == 'POST'){
+                
+                var body = '';
+                req.on('data', function (data) {
+                    body += data;
+                    // 1e6 === 1 * Math.pow(10, 6) === 1 * 1000000 ~~~ 1MB
+                    if (body.length > 1e6) { 
+                        // FLOOD ATTACK OR FAULTY CLIENT, NUKE REQUEST
+                        req.connection.destroy();
+                    }
+                });
+                req.on('end', function () {
+
+                    logger.info(qs.parse(body));
+
+
+                });
+              }
+              res.statusCode  = 200;
+              res.end();              
+            });
+            return middlewares;
+                  /*return [
+                      function(req,res,next) {
+                        logger.fatal('In function(req,res,next)');
+                          if (req.url.substring(0,5) == '/log'){
+                            logger.fatal(req.url);
+                              request('http://localhost:9002'+req.url, function (err, response, body) {
+                                  logger.info('response: '+response);
+                                  logger.warn('body: '+body);
+                                  if (!err && response.statusCode == 200) {
+                                      res.end(body);
+                                      logger.error('res: '+res);
+                                  }                                  
+                              });
+                          } else {
+                              return next();
+                          }
+                      },
+                      connect.static(require('path').resolve(options.base))
+                  ];*/
+              };
