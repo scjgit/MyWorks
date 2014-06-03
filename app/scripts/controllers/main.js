@@ -1,8 +1,8 @@
 'use strict';
 
 angular.module('logInAngApp')
-  .controller('MainCtrl', function ($scope, applicationLog, ejournelLog) {
-    $scope.awesomeThings = "node log4j Example";
-    applicationLog.logERROR("node log4j Example");
-    ejournelLog.logINFO("node log4j Example");
+  .controller('MainCtrl', function ($scope, applicationLog, ejournalLog) {
+    applicationLog.logERROR("logs push to application log file");
+    ejournalLog.logINFO("logs push to ejournal log file");
+  	dd.yy
   });

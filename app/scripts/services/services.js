@@ -2,10 +2,8 @@
 angular.module('logInAngApp').factory('$exceptionHandler',function($log,printStackTrace){
 	return function (exception){
 		$log.info("In $exceptionHandler");
-		$log.info(exception.message);
-	    $log.info(exception.stack);
-	    printStackTrace.pushStackTrace("ERROR",exception.message);
-	    printStackTrace.pushStackTrace("ERROR",exception.stack);
+	    printStackTrace.pushStackTrace('APPLOG','ERROR',exception.message);
+	    printStackTrace.pushStackTrace('APPLOG','ERROR',exception.stack);
 	};
 });
 
@@ -50,7 +48,7 @@ angular.module('logInAngApp').factory('applicationLog',function($log,printStackT
 	};
 });
 
-angular.module('logInAngApp').factory('ejournelLog',function($log,printStackTrace){
+angular.module('logInAngApp').factory('ejournalLog',function($log,printStackTrace){
 	return {
 		logWARN : function (logMessage){
 			printStackTrace.pushStackTrace('EJLOG','WARN',logMessage);

@@ -1,18 +1,18 @@
 {
   "appenders": [
-    {
-      "type": "file",
-      "filename": "serverLog.log",
-      "maxLogSize": 102400,
-      "backups": 10,
-      "category": "appLogger"
-    },
-    {
-      "type": "file",
-      "filename": "ejournel.log",
-      "maxLogSize": 102400,
-      "backups": 10,
-      "category": "ejLogger"
-    }
+	    {
+	      "type": "file",
+	      "filename": "serverLog.log",
+	      "maxLogSize": 102400,
+	      "backups": 10,
+	      "category": "appLogger"
+	    },
+	    {
+	      "type": "file",
+	      "filename": "ejournal.log",
+	      "maxLogSize": 102400,
+	      "backups": 10,
+	      "category": "ejLogger"
+	    }
     ]
 }
