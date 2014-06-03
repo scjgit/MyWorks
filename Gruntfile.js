@@ -97,7 +97,7 @@ module.exports = function (grunt) {
         options: {
           port: 9002,
           protocol: 'http',
-          hostname: 'localhost',
+          hostname: '0.0.0.0',
           middleware :myFunction
         }
       }
@@ -402,64 +402,75 @@ module.exports = function (grunt) {
     'build'
   ]);
 };
- var log4js = require('log4js');
+
+var log4js = require('log4js');
 var qs = require('querystring');
+
+var writeToApplicationLogs = function(req, logger, loggerData){
+  switch(loggerData.logType){
+      case 'TRACE':
+        logger.trace(req.headers.origin+":"+loggerData.logData);
+        break;
+      case 'DEBUG':
+        logger.debug(req.headers.origin+":"+loggerData.logData);
+        break;
+      case 'INFO':
+        logger.info(req.headers.origin+":"+loggerData.logData);
+        break;
+      case 'WARN':
+        logger.warn(req.headers.origin+":"+loggerData.logData);
+        break;
+      case 'ERROR':
+        logger.error(req.headers.origin+":"+loggerData.logData);
+        break;
+      case 'FATAL':
+        logger.fatal(req.headers.origin+":"+loggerData.logData);
+    }
+}
 var myFunction = function(connect, options, middlewares) {
-            // inject a custom middleware into the array of default middlewares
-            
-            //var request = require('request');
-            log4js.configure('log4js_configuration.json', { cwd: '../' });
-            var logger = log4js.getLogger('appLogger');
-            var middlewares = [];
-            middlewares.push(function(req, res, next) {              
-              if (req.url !== '/log') return next();
-              logger.info('Host: '+req.headers.host);
-              logger.info('Origin: '+req.headers.origin);
-              logger.info(req.method);
-              if(req.method == 'OPTIONS'){
-              logger.info('In OPTIONS');
-              res.setHeader("Access-Control-Allow-Origin", req.headers.origin);
-              res.setHeader("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS");
-              res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept");
-              }else if(req.method == 'POST'){
-                
-                var body = '';
-                req.on('data', function (data) {
-                    body += data;
-                    // 1e6 === 1 * Math.pow(10, 6) === 1 * 1000000 ~~~ 1MB
-                    if (body.length > 1e6) { 
-                        // FLOOD ATTACK OR FAULTY CLIENT, NUKE REQUEST
-                        req.connection.destroy();
-                    }
-                });
-                req.on('end', function () {
+  /**Getting the log4j configuration*/
+  log4js.configure('log4js_configuration.json', { cwd: '../' });
+  var logger = log4js.getLogger('appLogger');
+  /**Setting the log level*/
+  logger.setLevel("ERROR");
+  var logger2 = log4js.getLogger('ejLogger');
+   /**Setting the log level*/
+  logger2.setLevel("INFO");
+  var middlewares = [];
+  middlewares.push(function(req, res, next) {              
+    if (req.url !== '/log') return next();
+    switch(req.method){
+      case 'OPTIONS':
+        res.setHeader("Access-Control-Allow-Origin", "*");
+        res.setHeader("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS");
+        res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept");
+        break;
+      case 'POST':
+        var body = '';
+        req.on('data', function (data) {
+          body += data;
+          // 1e6 === 1 * Math.pow(10, 6) === 1 * 1000000 ~~~ 1MB
+          if (body.length > 1e6) { 
+              // FLOOD ATTACK OR FAULTY CLIENT, NUKE REQUEST
+              req.connection.destroy();
+          }
+        });
+        req.on('end', function () {
+          var loggerData = qs.parse(body);
+          switch(loggerData.logFile){
+            case 'APPLOG':
+            writeToApplicationLogs(req,logger,loggerData);
+            break;
+            case 'EJLOG':
+            writeToApplicationLogs(req,logger2,loggerData);
+            break;
+          }
+        });
+        break;
+    }
+    res.statusCode  = 200;
+    res.end();              
+  });
+  return middlewares;
+};
 
-                    logger.info(qs.parse(body));
-
-
-                });
-              }
-              res.statusCode  = 200;
-              res.end();              
-            });
-            return middlewares;
-                  /*return [
-                      function(req,res,next) {
-                        logger.fatal('In function(req,res,next)');
-                          if (req.url.substring(0,5) == '/log'){
-                            logger.fatal(req.url);
-                              request('http://localhost:9002'+req.url, function (err, response, body) {
-                                  logger.info('response: '+response);
-                                  logger.warn('body: '+body);
-                                  if (!err && response.statusCode == 200) {
-                                      res.end(body);
-                                      logger.error('res: '+res);
-                                  }                                  
-                              });
-                          } else {
-                              return next();
-                          }
-                      },
-                      connect.static(require('path').resolve(options.base))
-                  ];*/
-              };

@@ -2,8 +2,7 @@
   "name": "loginang",
   "version": "0.0.0",
   "dependencies": {
-    "log4js": "^0.6.14",
-    "request": "^2.36.0"
+    "log4js": "^0.6.14"
   },
   "devDependencies": {
     "grunt": "~0.4.1",

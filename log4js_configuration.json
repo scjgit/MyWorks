@@ -6,6 +6,13 @@
       "maxLogSize": 102400,
       "backups": 10,
       "category": "appLogger"
+    },
+    {
+      "type": "file",
+      "filename": "ejournel.log",
+      "maxLogSize": 102400,
+      "backups": 10,
+      "category": "ejLogger"
     }
     ]
 }
