@@ -97,7 +97,7 @@ module.exports = function (grunt) {
         options: {
           port: 9002,
           protocol: 'http',
-          hostname: '0.0.0.0',
+          hostname: 'localhost',
           middleware :myFunction
         }
       }
@@ -431,11 +431,12 @@ var myFunction = function(connect, options, middlewares) {
   /**Getting the log4j configuration*/
   log4js.configure('log4js_configuration.json', { cwd: '../' });
   var logger = log4js.getLogger('appLogger');
+  var LOGGERLEVEL = require('./log4js_configuration.json');
   /**Setting the log level*/
-  logger.setLevel("ERROR");
+  logger.setLevel(LOGGERLEVEL.SERVERLOGLEVEL);
   var logger2 = log4js.getLogger('ejLogger');
    /**Setting the log level*/
-  logger2.setLevel("INFO");
+  logger2.setLevel(LOGGERLEVEL.EJOURNALLOGLEVEL);
   var middlewares = [];
   middlewares.push(function(req, res, next) {              
     if (req.url !== '/log') return next();
